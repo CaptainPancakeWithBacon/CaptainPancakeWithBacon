@@ -14,9 +14,9 @@ Hi there! 👋 I'm Gijs Borghouts<br>I'm an ICT student at HZ University of Appl
 # 💻 Tech Stack:
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat&logo=javascript&logoColor=%23F7DF1E) ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white) ![PHP](https://img.shields.io/badge/php-%23777BB4.svg?style=flat&logo=php&logoColor=white) ![HTML5](https://img.shields.io/badge/html5-%23E34F26.svg?style=flat&logo=html5&logoColor=white) ![Laravel](https://img.shields.io/badge/laravel-%23FF2D20.svg?style=flat&logo=laravel&logoColor=white) ![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=flat&logo=figma&logoColor=white) ![Krita](https://img.shields.io/badge/Krita-203759?style=flat&logo=krita&logoColor=EEF37B) ![Aseprite](https://img.shields.io/badge/Aseprite-FFFFFF?style=flat&logo=Aseprite&logoColor=#7D929E) ![Canva](https://img.shields.io/badge/Canva-%2300C4CC.svg?style=flat&logo=Canva&logoColor=white)
 # 📊 GitHub Stats:
-![](https://github-readme-stats.vercel.app/api?username=CaptainPancakeWithBAcon&theme=vue-dark&hide_border=false&include_all_commits=true&count_private=true)<br/>
-![](https://nirzak-streak-stats.vercel.app/?user=CaptainPancakeWithBAcon&theme=vue-dark&hide_border=false)<br/>
-![](https://github-readme-stats.vercel.app/api/top-langs/?username=CaptainPancakeWithBAcon&theme=vue-dark&hide_border=false&include_all_commits=true&count_private=true&layout=compact)
+![CaptainPancakeWithBacon's Stats](https://github-readme-stats.vercel.app/api?username=CaptainPancakeWithBacon&theme=monokai&show_icons=true&hide_border=false&count_private=true)<br>
+![CaptainPancakeWithBacon's Streak](https://github-readme-streak-stats.herokuapp.com/?user=CaptainPancakeWithBacon&theme=monokai&hide_border=false)<br>
+![CaptainPancakeWithBacon's Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=CaptainPancakeWithBacon&theme=monokai&show_icons=true&hide_border=false&layout=compact)
 
 ---
 [![](https://visitcount.itsvg.in/api?id=CaptainPancakeWithBAcon&icon=5&color=3)](https://visitcount.itsvg.in)
