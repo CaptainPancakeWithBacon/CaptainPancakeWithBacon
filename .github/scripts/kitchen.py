@@ -34,7 +34,7 @@ def fetch(user):
             langs[r["language"]] = langs.get(r["language"], 0) + 1
     week = [e for e in events if age(e["created_at"]) < 7 * 86400]
     pushes = [e for e in week if e["type"] == "PushEvent"]
-    latest = max(repos, key=lambda r: r["pushed_at"])
+    latest = max((r for r in repos if r["name"] != user), key=lambda r: r["pushed_at"])  # the profile repo is pushed by the bot every night
     return {"langs": sorted(langs.items(), key=lambda kv: -kv[1])[:4],
             "commits": sum(e["payload"].get("size", 1) for e in pushes),
             "prs": sum(e["type"] == "PullRequestEvent" for e in week),
