@@ -29,6 +29,5 @@ Laravel · Symfony · Svelte · Tailwind · Docker · GJS
 ```
 1x curiosity ............ free
 2x side projects ........ too many
-1x D&D campaign ......... sneaky
 TOTAL ................... thanks for stopping by
 ```
