@@ -19,7 +19,7 @@ text{stroke:none!important}.ink{stroke:#2a1d17;stroke-width:6;stroke-linejoin:ro
   <path d="M24 40 h150" stroke-dasharray="6 6" stroke-width="3"/>
   <text x="38" y="62" class="h" stroke="none" font-size="22">THIS WEEK</text>
   <text x="38" y="102" class="sm" stroke="none">9 commits</text>
-  <text x="38" y="128" class="sm" stroke="none">7 pull requests</text>
+  <text x="38" y="128" class="sm" stroke="none">6 pull requests</text>
   <text x="38" y="154" class="sm" stroke="none">3 repos stirred</text></g>
  <!-- stove -->
  <rect x="228" y="196" width="470" height="18" rx="8" fill="#2a1d17"/>
@@ -52,5 +52,5 @@ text{stroke:none!important}.ink{stroke:#2a1d17;stroke-width:6;stroke-linejoin:ro
  <path d="M740 196 h136" /><path d="M744 188 q64 22 128 0" fill="#555"/><path d="M872 190 h26" stroke-width="8"/>
  <g class="flip"><ellipse cx="808" cy="150" rx="46" ry="11" fill="#f2b865"/><path d="M780 150 q28 8 56 0" fill="none" stroke-width="3" stroke="#b5481c"/></g>
  <text x="800" y="246" class="lbl" stroke="none" text-anchor="middle">coucou</text>
- <text x="800" y="270" class="sm" stroke="none" text-anchor="middle">cooking · pushed 1d ago</text>
+ <text x="800" y="270" class="sm" stroke="none" text-anchor="middle">cooking · pushed 2d ago</text>
 </g></svg>
