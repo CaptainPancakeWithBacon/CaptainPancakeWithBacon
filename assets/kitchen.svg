@@ -52,5 +52,5 @@ text{stroke:none!important}.ink{stroke:#2a1d17;stroke-width:6;stroke-linejoin:ro
  <path d="M740 196 h136" /><path d="M744 188 q64 22 128 0" fill="#555"/><path d="M872 190 h26" stroke-width="8"/>
  <g class="flip"><ellipse cx="808" cy="150" rx="46" ry="11" fill="#f2b865"/><path d="M780 150 q28 8 56 0" fill="none" stroke-width="3" stroke="#b5481c"/></g>
  <text x="800" y="246" class="lbl" stroke="none" text-anchor="middle">coucou</text>
- <text x="800" y="270" class="sm" stroke="none" text-anchor="middle">cooking · pushed 2d ago</text>
+ <text x="800" y="270" class="sm" stroke="none" text-anchor="middle">cooking · pushed 3d ago</text>
 </g></svg>
