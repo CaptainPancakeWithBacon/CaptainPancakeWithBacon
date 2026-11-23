@@ -1,4 +1,4 @@
-name: livemap
+name: card
 
 on:
   schedule:
@@ -13,12 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 .github/scripts/livemap.py
+      - run: python3 .github/scripts/card.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Commit if the map changed
+      - name: Commit if the card changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/livemap.svg
-          git diff --cached --quiet || (git commit -m "Redraw map" && git push)
+          git add assets/card.svg
+          git diff --cached --quiet || (git commit -m "Redraw card" && git push)
