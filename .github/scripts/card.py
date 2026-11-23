@@ -18,6 +18,7 @@ HERE = Path(__file__).parent
 USER = next((a for a in sys.argv[1:] if not a.startswith("-") and not a.endswith(".json")), "CaptainPancakeWithBacon")
 CACHE = sys.argv[sys.argv.index("--cache") + 1] if "--cache" in sys.argv else None
 OUT = HERE.parent.parent / "assets" / "card.svg"
+ACTIVITY = OUT.with_name("activity.json")
 
 # ------------------------------------------------------------------ data
 def request(url):
@@ -201,10 +202,20 @@ def render(data):
     o.append("</svg>")
     return "\n".join(o)
 
+def activity(data, weeks=26):
+    """Daily public commit counts for the last N weeks, starting on a Monday. The portfolio site draws a heat strip from it."""
+    today = datetime.fromisoformat(data["updated"]).astimezone(TZ).date()
+    start = today - timedelta(days=today.weekday() + 7 * (weeks - 1))
+    days = Counter(datetime.fromisoformat(x.replace("Z", "+00:00")).astimezone(TZ).date() for r in data["repos"] for x in r["times"])
+    return dict(start=start.isoformat(), counts=[days[start + timedelta(days=i)] for i in range((today - start).days + 1)])
+
 def stamp_free(svg): return re.sub(r"Updated [^<]*", "", svg)
 
 if __name__ == "__main__":
     OUT.parent.mkdir(exist_ok=True)
-    svg = render(load())
+    data = load()
+    svg = render(data)
+    act = json.dumps(activity(data), separators=(",", ":"))
+    if not ACTIVITY.exists() or ACTIVITY.read_text() != act: ACTIVITY.write_text(act); print("wrote", ACTIVITY)
     if OUT.exists() and stamp_free(OUT.read_text()) == stamp_free(svg): print("card unchanged")
     else: OUT.write_text(svg); print("wrote", OUT, OUT.stat().st_size // 1024, "KB")
