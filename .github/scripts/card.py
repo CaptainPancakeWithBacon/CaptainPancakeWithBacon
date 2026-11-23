@@ -20,12 +20,12 @@ CACHE = sys.argv[sys.argv.index("--cache") + 1] if "--cache" in sys.argv else No
 OUT = HERE.parent.parent / "assets" / "card.svg"
 
 # ------------------------------------------------------------------ data
-def request(url, binary=False):
+def request(url):
     headers = {"User-Agent": "profile-card-svg", "Accept": "application/vnd.github+json"}
     if os.environ.get("GITHUB_TOKEN") and "api.github.com" in url:
         headers["Authorization"] = "Bearer " + os.environ["GITHUB_TOKEN"]
     with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=20) as r:
-        return (r.read(), r.headers.get("Content-Type", "")) if binary else json.load(r)
+        return json.load(r)
 
 def api(path): return request("https://api.github.com" + path)
 
@@ -47,9 +47,8 @@ def fetch():
         langs = {} if r["fork"] else api(f"/repos/{USER}/{r['name']}/languages")  # a fork's bytes are mostly upstream's code
         out.append(dict(name=r["name"], fork=r["fork"], stars=r["stargazers_count"], forks=r["forks_count"],
                         pushed=r["pushed_at"], times=times, langs=langs))
-    img, ctype = request(user["avatar_url"] + ("&" if "?" in user["avatar_url"] else "?") + "s=180", binary=True)
     return dict(user={k: user.get(k) for k in ("login", "name", "bio", "location", "created_at", "followers", "public_repos")},
-                avatar=f"data:{ctype.split(';')[0]};base64," + base64.b64encode(img).decode(), repos=out,
+                repos=out,
                 updated=datetime.now(timezone.utc).isoformat(timespec="minutes"))
 
 def load():
@@ -59,7 +58,7 @@ def load():
     return data
 
 # ------------------------------------------------------------------ drawing helpers
-W, H = 900, 540
+W, H = 640, 602
 BG, BORDER, TEXT, MUTED, BLUE, WHITE = "#0d1117", "#30363d", "#c9d1d9", "#8b949e", "#58a6ff", "#e6edf3"
 GREEN, TRACK = "#3fb950", "#21262d"
 SANS = "Inter,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif"
@@ -138,7 +137,6 @@ def render(data):
     days = Counter(s.date() for s in stamps)
     hours = [sum(1 for s in stamps if s.hour == h) for h in range(24)]
     wdays = [sum(1 for s in stamps if s.weekday() == d) for d in range(7)]
-    # streaks
     cur, d = 0, today if today in days else today - timedelta(days=1)
     while d in days: cur += 1; d -= timedelta(days=1)
     longest = run = 0; prev = None
@@ -147,10 +145,10 @@ def render(data):
     busy_day, busy_n = max(days.items(), key=lambda kv: kv[1]) if days else (today, 0)
     week_n = sum(v for k, v in days.items() if (today - k).days < 7)
     total = len(stamps)
-    # languages from my own (non-fork) repos
-    lb = Counter()
+    lb = Counter()                                    # languages from my own (non-fork) repos
     for r in repos:
-        for k, v in r["langs"].items(): lb[k] += v
+        for k, v in r["langs"].items():
+            if k != "Jupyter Notebook": lb[k] += v   # notebooks are mostly JSON output, not code I wrote
     lt = sum(lb.values()) or 1
     top_l = lb.most_common(6); rest = lt - sum(v for _, v in top_l)
 
@@ -159,62 +157,47 @@ def render(data):
          f'<desc id="d">{total} public commits in {len(repos)} repositories. Current streak {cur} days, longest {longest}. Top languages: '
          + ", ".join(f"{k} {100 * v // lt}%" for k, v in top_l[:4]) + ".</desc>",
          f"<style>{font_css()}</style>",
-         f'<defs><clipPath id="av"><circle cx="114" cy="108" r="74"/></clipPath></defs>',
          f'<rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="12" fill="{BG}" stroke="{BORDER}"/>']
-    # --- column 1: profile
-    o.append(f'<image href="{data["avatar"]}" x="40" y="34" width="148" height="148" clip-path="url(#av)" preserveAspectRatio="xMidYMid slice"/>')
-    o.append(f'<circle cx="114" cy="108" r="74" fill="none" stroke="{BORDER}" stroke-width="2"/>')
-    o.append(t(34, 222, u["name"] or u["login"], 22, 600, WHITE))
-    o.append(t(34, 243, u["login"], 13, 400, MUTED))
-    y = 276
-    rows = []
-    if u.get("location"): rows.append(("pin", u["location"]))
-    created = datetime.fromisoformat(u["created_at"].replace("Z", "+00:00"))
-    rows += [("clock", f'Joined GitHub {created.strftime("%b %Y")}'), ("people", f'Followed by {u["followers"]}'),
-             ("repo", f'{len(repos)} public repositories'), ("star", f'{sum(r["stars"] for r in repos)} stars received'),
-             ("fork", f'{(fk := sum(r["forks"] for r in repos))} fork' + ("" if fk == 1 else "s"))]
-    for k, s in rows:
-        o.append(icon(k, 34, y - 10) + t(54, y, s, 12.5, 400, MUTED)); y += 24
-    o.append(title(34, 420, "Recently pushed"))
-    y = 446
-    for r in sorted(repos, key=lambda r: r["pushed"], reverse=True)[:3]:
-        pushed = datetime.fromisoformat(r["pushed"].replace("Z", "+00:00")).astimezone(TZ)
-        o.append(t(34, y, r["name"], 12.5, 600, TEXT) + t(210, y, pushed.strftime("%-d %b"), 12, 400, MUTED, "end")); y += 22
-    # --- column 2
-    X2, W2 = 250, 322
-    o.append(title(X2, 44, "Commits by time of day"))
-    o.append(t(X2 + 322, 44, "local time", 10.5, 400, MUTED, "end"))
-    o += bars(X2, 150, hours, [f"{h:02d}" for h in range(24)], 9, 4.35, 78, 3)
-    o.append(title(X2, 208, "Commits by day of week"))
-    o += bars(X2 + 3, 298, wdays, ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], 28, 17.6, 70, 1, 10)
-    o.append(title(X2, 356, "Languages in my own repos"))
-    x = X2; segs = [(k, v) for k, v in top_l] + ([("Other", rest)] if rest > 0 else [])
-    o.append(f'<clipPath id="lb"><rect x="{X2}" y="368" width="{W2}" height="9" rx="4.5"/></clipPath><g clip-path="url(#lb)">')
+    # header: four numbers
+    for i, (val, label) in enumerate(((n(total), "public commits"), (len(repos), "repositories"),
+                                      (sum(r["stars"] for r in repos), "stars"), (u["followers"], "followers"))):
+        x = 28 + i * 152
+        o.append(t(x, 46, val, 22, 600, WHITE) + t(x, 64, label, 11.5, 400, MUTED))
+    o.append(f'<line x1="28" y1="82" x2="{W - 28}" y2="82" stroke="{BORDER}"/>')
+    # left column
+    XL, WL = 28, 288
+    o.append(title(XL, 114, "Commits by time of day") + t(XL + WL, 114, "Amsterdam time", 10.5, 400, MUTED, "end"))
+    o += bars(XL, 210, hours, [f"{h:02d}" for h in range(24)], 8, 4.35, 76, 3, 8.5)
+    o.append(title(XL, 272, "Commits by day of week"))
+    o += bars(XL + 2, 360, wdays, ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], 28, 14.7, 64, 1, 10)
+    o.append(title(XL, 422, "Languages in my own repos"))
+    x = XL; segs = list(top_l) + ([("Other", rest)] if rest > 0 else [])
+    o.append(f'<clipPath id="lb"><rect x="{XL}" y="436" width="{WL}" height="9" rx="4.5"/></clipPath><g clip-path="url(#lb)">')
     for k, v in segs:
-        w = W2 * v / lt; o.append(f'<rect x="{x:.1f}" y="368" width="{w + .5:.1f}" height="9" fill="{LANG.get(k, MUTED)}"/>'); x += w
+        w = WL * v / lt; o.append(f'<rect x="{x:.1f}" y="436" width="{w + .5:.1f}" height="9" fill="{LANG.get(k, MUTED)}"/>'); x += w
     o.append("</g>")
     for i, (k, v) in enumerate(segs[:8]):
-        lx = X2 + (i % 2) * 165; ly = 402 + (i // 2) * 21
-        o.append(f'<circle cx="{lx + 5}" cy="{ly - 4}" r="4.5" fill="{LANG.get(k, MUTED)}"/>' + t(lx + 16, ly, k, 12, 400, TEXT) + t(lx + 150, ly, f"{100 * v / lt:.1f}%", 11, 400, MUTED, "end"))
-    # --- column 3
-    X3 = 604
-    o.append(title(X3, 44, "Contribution calendar"))
-    o += iso_calendar(days, today, X3 + 52, 94)
-    y = 262
+        lx = XL + (i % 2) * 148; ly = 472 + (i // 2) * 21
+        o.append(f'<circle cx="{lx + 5}" cy="{ly - 4}" r="4.5" fill="{LANG.get(k, MUTED)}"/>' + t(lx + 16, ly, k, 12, 400, TEXT) + t(lx + 136, ly, f"{100 * v / lt:.0f}%", 11, 400, MUTED, "end"))
+    # right column
+    XR, WR = 342, 270
+    o.append(title(XR, 114, "Contribution calendar"))
+    o += iso_calendar(days, today, XR + 50, 156, c=8.4)
+    y = 322
     for k, label, val in (("flame", "Current streak", f"{cur} day" + ("" if cur == 1 else "s")),
                           ("graph", "Longest streak", f"{longest} days"),
                           ("calendar", "Busiest day", f'{busy_n} commits, {busy_day.strftime("%-d %b")}'),
                           ("clock", "This week", f"{week_n} commit" + ("" if week_n == 1 else "s"))):
-        o.append(icon(k, X3, y - 10) + t(X3 + 20, y, label, 12.5, 400, MUTED) + t(X3 + 268, y, val, 12.5, 600, TEXT, "end")); y += 24
-    o.append(title(X3, 380, "Most worked on"))
+        o.append(icon(k, XR, y - 10) + t(XR + 20, y, label, 12.5, 400, MUTED) + t(XR + WR, y, val, 12.5, 600, TEXT, "end")); y += 24
+    o.append(title(XR, 450, "Most worked on"))
     top_r = sorted(repos, key=lambda r: -len(r["times"]))[:4]; mx = max(1, len(top_r[0]["times"]))
-    y = 406
+    y = 478
     for r in top_r:
-        c = len(r["times"]); sub = " (fork)" if r["fork"] else ""
-        o.append(t(X3, y, r["name"] + sub, 12.5, 600, TEXT) + t(X3 + 268, y, c, 12.5, 600, TEXT, "end"))
-        o.append(f'<rect x="{X3}" y="{y + 7}" width="268" height="6" rx="3" fill="{TRACK}"/><rect x="{X3}" y="{y + 7}" width="{max(6, 268 * c / mx):.1f}" height="6" rx="3" fill="{GREEN}"/>')
-        y += 36
-    o.append(t(34, 516, f'Public commits only, counted in Europe/Amsterdam time. Updated {now.strftime("%-d %b %Y")}', 10.5, 400, MUTED))
+        c = len(r["times"])
+        o.append(t(XR, y, r["name"] + (" (fork)" if r["fork"] else ""), 12.5, 600, TEXT) + t(XR + WR, y, c, 12.5, 600, TEXT, "end"))
+        o.append(f'<rect x="{XR}" y="{y + 7}" width="{WR}" height="6" rx="3" fill="{TRACK}"/><rect x="{XR}" y="{y + 7}" width="{max(6, WR * c / mx):.1f}" height="6" rx="3" fill="{GREEN}"/>')
+        y += 31
+    o.append(t(28, H - 16, f'Public commits only. Updated {now.strftime("%-d %b %Y")}', 10.5, 400, MUTED))
     o.append("</svg>")
     return "\n".join(o)
 
